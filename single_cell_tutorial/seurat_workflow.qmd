@@ -1,0 +1,159 @@
+---
+title: "Seurat Workflow"
+format: html
+editor: visual
+---
+
+## Load packages
+
+```{r message=FALSE}
+library(dplyr)
+library(Seurat)
+library(SeuratData)
+```
+
+## Install Data
+
+```{r}
+# InstallData('pbmc3k')
+```
+
+## Load data
+
+```{r}
+# Load the PBMC dataset
+# pbmc.data <- Read10X(data.dir = "/brahms/mollag/practice/filtered_gene_bc_matrices/hg19/")
+# Initialize the Seurat object with the raw (non-normalized data).
+# pbmc <- CreateSeuratObject(counts = pbmc.data, project = "pbmc3k", min.cells = 3, min.features = 200)
+
+pbmc <- LoadData('pbmc3k')
+```
+
+Look at the meta data.
+
+```{r}
+pbmc@meta.data %>% head()
+```
+
+## Preprocessing and QC
+
+Create a column for each cell with the percentage of mitochondrial and ribosomal genes (potentially more genes). NB: change pattern according to organism.
+
+```{r}
+pbmc[["percent.mt"]] <- PercentageFeatureSet(pbmc, pattern = "^MT-")
+pbmc[["percent.ribo"]] <- PercentageFeatureSet(pbmc, pattern = "^RPS|^RPL")
+```
+
+Plot distributions in violin plots.
+
+```{r}
+VlnPlot(pbmc, features = c("percent.mt", "percent.ribo"), ncol = 2)
+```
+
+```{r}
+VlnPlot(pbmc, features = c("nFeature_RNA", "nCount_RNA"), ncol = 2)
+```
+
+Filter cells based on QC violin plots.
+
+```{r}
+pbmc <- subset(pbmc, subset = nFeature_RNA > 200 & nFeature_RNA < 2500 & percent.mt < 5)
+```
+
+## SCTransform: NormalizeData, FindVariableFeatures, ScaleData
+
+Normalization: Accounts for different sequencing depth between samples.
+
+Variable Features: Determines the 3000 (default) most variable features/genes to include in the analysis. This reduces the dimensionality (and thereby noise) of the dataset.
+
+Scaling: Transform the data such that mean = 0 and standard deviation = 1. This is important for the PCA that is performed after.
+
+```{r}
+pbmc <- SCTransform(pbmc, variable.features.n = 3000, verbose = FALSE)
+```
+
+## Linear dimensionality reduction: PCA
+
+Perform PCA using the most variable features defined when running SCTransform.
+
+```{r}
+pbmc <- RunPCA(pbmc, features = VariableFeatures(object = pbmc), verbose = FALSE)
+```
+
+In order to reduce the dimensionality further we only select the PC that explains the most variance. To do this, we look at the elbow plot. Right before the standard deviation goes down (a lot, at the elbow), that is the number of PCs we will work with. Here we chose 10 PCs.
+
+```{r}
+ElbowPlot(pbmc)
+```
+
+## Clutsering
+
+Clustering is the process of grouping similar cells together based on their gene expression profiles.
+
+
+We find neighbors in the space of the first 10 (`dims = 1:10`) PCs. Neighbors are found via the K-nearest-neighbors algorithm and find the `k.param` (default 20) nearest neighbors based on euclidean distance in PCA space for each cell. This constructs a **KNN graph** where each cell is a node that is connected to its `k.param` neighbors with edges. Then, a shared nearest neighbor graph **SNN Graph** is constructed where the shared neighbors between the cells are defined with new edges, which are assigned weights based on the shared overlap in their local neighborhoods (Jaccard similarity). 
+
+Here's an example:
+
+cell1 neighbors: cell2, cell3, cell4, cell5.
+
+cell2 neighbors: cell1, cell3, cell4, cell6.
+
+**Shared neighbors**: 2 (cell3 and cell4). 
+
+**Jaccard similarity**:
+$$
+\text{Jaccard}(\text{cell}_1, \text{cell}_2) = \frac{\text{Intersect(Neighbors}_{1} \text{, Neighbors}_{2}\text{)}}{\text{Union(Neighbors}_{1} \text{, Neighbors}_{2}\text{)}} = \frac{2}{6} = \frac{1}{3}
+$$
+
+```{r}
+pbmc <- FindNeighbors(pbmc, dims = 1:10)
+```
+
+Finding clusters with the default algorithm (Louvain) is an iterative process with multiple steps. The initial cluster are 1 per cell. A **modularity** score is calculated to define if a cluster is "good" or "bad" by calculating if a cluster has more edges with than by random. A good cluster has lots of internal connections and few external ones. A bad cluster has no real difference between internal and external. The `FindClusters` function tries to maximize modularity by merging clusters (iterative). The `resolution` parameter scales the expected number of edges between nodes, which influences how modularity is calculated.
+
+- Higher resolution → more clusters
+
+- Lower resolution → fewer clusters
+
+```{r}
+pbmc <- FindClusters(pbmc, resolution = 0.5)
+```
+
+## Visualization via non-linear dimensional reduction: UMAP
+
+```{r}
+pbmc <- RunUMAP(pbmc, dims = 1:10)
+```
+
+Plot UMAP and color by any of the features in the metadata.
+
+```{r}
+DimPlot(pbmc, reduction = "umap", group.by = 'seurat_clusters')
+```
+
+## Find Markers
+
+By default, it identifies positive and negative markers of a single cluster (specified in ident.1), compared to all other cells.
+
+```{r}
+markers_5_vs_all <- FindMarkers(pbmc, ident.1 = 5)
+head(markers_5_vs_all, n = 5)
+```
+
+Find all markers distinguishing cluster 5 from clusters 0 and 3
+
+```{r}
+markers_5_vs_0.3 <- FindMarkers(pbmc, ident.1 = 5, ident.2 = c(0, 3))
+head(markers_5_vs_0.3, n = 5)
+```
+
+Plot expression of individual genes.
+
+```{r}
+FeaturePlot(pbmc, features = c("GZMB", "CST7", "PRF1", "GZMA"))
+```
+
+## Assign cell types
+
+## DE analysis 
