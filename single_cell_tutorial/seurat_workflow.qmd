@@ -90,8 +90,7 @@ ElbowPlot(pbmc)
 
 Clustering is the process of grouping similar cells together based on their gene expression profiles.
 
-
-We find neighbors in the space of the first 10 (`dims = 1:10`) PCs. Neighbors are found via the K-nearest-neighbors algorithm and find the `k.param` (default 20) nearest neighbors based on euclidean distance in PCA space for each cell. This constructs a **KNN graph** where each cell is a node that is connected to its `k.param` neighbors with edges. Then, a shared nearest neighbor graph **SNN Graph** is constructed where the shared neighbors between the cells are defined with new edges, which are assigned weights based on the shared overlap in their local neighborhoods (Jaccard similarity). 
+We find neighbors in the space of the first 10 (`dims = 1:10`) PCs. Neighbors are found via the K-nearest-neighbors algorithm and find the `k.param` (default 20) nearest neighbors based on euclidean distance in PCA space for each cell. This constructs a **KNN graph** where each cell is a node that is connected to its `k.param` neighbors with edges. Then, a shared nearest neighbor graph **SNN Graph** is constructed where the shared neighbors between the cells are defined with new edges, which are assigned weights based on the shared overlap in their local neighborhoods (Jaccard similarity).
 
 Here's an example:
 
@@ -99,10 +98,9 @@ cell1 neighbors: cell2, cell3, cell4, cell5.
 
 cell2 neighbors: cell1, cell3, cell4, cell6.
 
-**Shared neighbors**: 2 (cell3 and cell4). 
+**Shared neighbors**: 2 (cell3 and cell4).
 
-**Jaccard similarity**:
-$$
+**Jaccard similarity**: $$
 \text{Jaccard}(\text{cell}_1, \text{cell}_2) = \frac{\text{Intersect(Neighbors}_{1} \text{, Neighbors}_{2}\text{)}}{\text{Union(Neighbors}_{1} \text{, Neighbors}_{2}\text{)}} = \frac{2}{6} = \frac{1}{3}
 $$
 
@@ -112,9 +110,9 @@ pbmc <- FindNeighbors(pbmc, dims = 1:10)
 
 Finding clusters with the default algorithm (Louvain) is an iterative process with multiple steps. The initial cluster are 1 per cell. A **modularity** score is calculated to define if a cluster is "good" or "bad" by calculating if a cluster has more edges with than by random. A good cluster has lots of internal connections and few external ones. A bad cluster has no real difference between internal and external. The `FindClusters` function tries to maximize modularity by merging clusters (iterative). The `resolution` parameter scales the expected number of edges between nodes, which influences how modularity is calculated.
 
-- Higher resolution → more clusters
+-   Higher resolution → more clusters
 
-- Lower resolution → fewer clusters
+-   Lower resolution → fewer clusters
 
 ```{r}
 pbmc <- FindClusters(pbmc, resolution = 0.5)
@@ -156,4 +154,4 @@ FeaturePlot(pbmc, features = c("GZMB", "CST7", "PRF1", "GZMA"))
 
 ## Assign cell types
 
-## DE analysis 
+## DE analysis
