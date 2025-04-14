@@ -154,4 +154,10 @@ FeaturePlot(pbmc, features = c("GZMB", "CST7", "PRF1", "GZMA"))
 
 ## Assign cell types
 
+```{r}
+library(SingleR)
+```
+
+The whole point of finding variable features, scaling and dimensionality reduction (PCA) was to perform clustering (hopefully of cell types). These clusters are visualized in a UMAP. Each cluster (or each cell) is then assigned a cell type. The DEanalysis is performed on the raw counts (NOT the SCTranform'ed counts).
+
 ## DE analysis

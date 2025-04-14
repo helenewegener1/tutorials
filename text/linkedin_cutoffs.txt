@@ -1,0 +1,132 @@
+By: Ming "Tommy" Tang
+
+“What cutoff should I use for p-value, log2FC, or mito content?”
+
+This is the most common question I get.
+
+Here's why it’s not simple:
+
+"Tommy, what’s the p-value cutoff for DE genes?"
+
+"What log2FC should I use?"
+
+"What’s the mito% for QC in scRNA-seq?"
+
+Sound familiar?
+
+My honest answer: it depends.
+
+I often joke that 90% of a bioinformatician’s job is figuring out cutoffs.
+
+Let me explain why.
+
+
+Let’s start with p-values.
+
+With huge sample sizes, even small differences yield tiny p-values.
+
+Like 1e-20 small.
+
+This happens in single-cell RNA-seq.
+
+You cluster cells, then test for DE genes between clusters.
+
+That’s double dipping.
+
+So p-values become artificially small.
+
+You may see thousands of genes with significant p-values.
+
+But is that useful?
+
+That’s why we look at effect size.
+
+In RNA-seq, it's usually log2 Fold Change.
+
+Biology matters more than stats.
+
+A common log2FC cutoff is 1 (i.e., 2-fold change).
+
+But again—it depends.
+
+This is just a convenient threshold.
+
+Sometimes, only a few genes pass log2FC = 1.
+
+You might need to relax the cutoff to find meaningful hits.
+
+It's about prioritization.
+
+Is a 50% change important?
+
+Let’s see two real examples.
+
+X-chromosome inactivation escape:
+
+Some genes increase ~50% in females vs males.
+
+This can drive disease phenotypes.
+
+Beta-thalassemia:
+
+A 50% drop in HBB gene expression causes anemia, splenomegaly, and skeletal abnormalities.
+
+So yes, small fold changes can be biologically significant.
+
+The numbers must be interpreted in context.
+
+Now let’s talk single-cell QC.
+
+“What mito% should I use to filter cells?”
+
+You’ll hear 5%, 10%, or 20% thrown around.
+
+Mito gene expression is a proxy for dying cells.
+
+But some tissues have naturally high mitochondrial content.
+
+Muscle and kidney, for example, are metabolically active.
+
+High mito% is normal for them—not a sign of low quality.
+
+Same applies to ribosomal genes.
+
+Naive T cells and some cancer cells express lots of ribosomal genes by design.
+
+These aren’t low-quality cells.
+
+They reflect real biology.
+
+Use caution with rigid cutoffs.
+
+There are data-driven tools like miQC:
+
+https://lnkd.in/e7Kw22zN They estimate optimal cutoffs using your data.
+
+Still, even tools like miQC aren’t foolproof.
+
+You must understand the tissue and biology before trusting any threshold.
+
+Key takeaways:
+• P-values shrink with large sample sizes
+• Log2FC tells you about effect size
+• QC cutoffs vary by tissue
+• Know your biology
+
+Action items:
+• Don’t blindly follow thresholds
+• Interpret effect sizes contextually
+• Use tools like miQC carefully
+• Prioritize biological meaning
+
+So next time you ask me for a cutoff,
+
+My answer will still be:
+
+It depends.
+
+I hope you've found this post helpful.
+
+Follow me for more.
+
+Subscribe to my FREE newsletter https://lnkd.in/erw83Svn
